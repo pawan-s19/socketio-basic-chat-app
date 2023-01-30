@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <style>
+      *{
+        margin:0;
+        padding:0;
+        box-sizing: border-box;
+      }
+      html,body{
+        height:100%;
+        width:100%;
+        font-family: Gilroy;
+        
+      }
+      textarea {
+        width: 100%;
+        height: 3rem;
+        resize: none;
+        padding:10px;
+        border-radius: 10px;
+      }
+      
+      .messages {
+        height: 80vh;
+        border: 1px solid black;
+        border-radius: 10px;
+        padding: 20px;
+        overflow: auto;
+        margin-bottom: 30px;
+        
+      }
+      .message {
+        background-color: rgb(228, 242, 166);
+        border-radius: 10px;
+        padding: 4px 6px;
+        display: table;
+
+        margin-top: 30px;
+      }
+      .t{
+        margin-left: auto;
+      }
+      
+      button {
+        height: 35px;
+        width: 85px;
+        color: white;
+        background-color: rgb(13, 110, 253);
+        border-radius: 5px;
+        border: none;
+      }
+      .liveusers{
+        background-color: green;
+        border-radius: 6px;
+        position: absolute;
+        right: 9px;
+        padding:10px;
+        color:white;
+        font-family: Gilroy;
+      }
+      .cover{
+        height:100%;
+        width:100%;
+        background-color: rgb(248, 155, 155);
+        position: absolute;
+        z-index: 9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .messages::-webkit-scrollbar{
+        display: none;
+      }
+      input{
+        height:45px;
+        width:300px;
+        padding: 10px;
+      }
+      .cover button{
+        margin-left: 30px;
+        height: 45px;
+        font-family: Gilroy;
+        background-color: green;
+      }
+      .usersonline{
+        height:400px;
+        position: absolute;
+        width:20%;
+        background-color: rgb(212, 208, 208);
+        left:38%;
+        padding:30px 20px;
+        display:none;
+        overflow: auto;
+        border-radius: 10px;
+        margin-top: 40px;
+      }
+      .user {
+
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .circle{
+        height:10px;
+        width:10px;
+        background-color: green;
+        border-radius: 50%;
+        margin-left: 10px;
+      }
+      .circleo{
+        height:10px;
+        width:10px;
+        background-color: green;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+      .online{
+        display: flex;
+        align-items: center;
+      }
+      .onlinetag{
+        display: flex;
+        align-items: center;
+        position: absolute;
+        background-color: rgb(194, 226, 163);
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
+        left:45%;
+        padding: 4px;
+       box-shadow: 2px 2px 2px 2px rgb(154, 152, 152);
+      }
+      .overlayt{
+        height:100%;
+        width:100%;
+       
+        position: absolute;
+        left:0;
+        top:0;
+      }
+    </style>
+    
+    <body>
+      <div class="onlinetag">
+        <div class="overlayt"></div>
+        <div class="circleo"></div>
+        <h3>Online</h3>
+      </div>
+      <div class="cover">
+        <input type="text" placeholder="Enter your Name">
+        <button>Enter the chat</button>
+      </div>
+      <div class="usersonline">
+       
+        
+      </div>
+      <div class="card container" style="width: 100%">
+        <div class="liveusers">
+          0 online
+        </div>
+        <div class="card-body">
+          <h5 class="card-title"></h5>
+          <div class="messages">
+            
+          </div>
+         
+            <textarea
+              placeholder="Type a message"
+              name="message"
+              class="card-text"
+            ></textarea>
+         
+          <button id="a">Send</button>
+        </div>
+      </div>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"
+      integrity="sha512-9mpsATI0KClwt+xVZfbcf2lJ8IFBAwsubJ6mI3rtULwyM3fBmQFzj0It4tGqxLOGQwGfJdk/G+fANnxfq9/cew=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script>
+      var username = 'default'
+     
+      var socket = io();
+      
+      
+
+      document.querySelector("#a").addEventListener("click",function(dets){
+        socket.emit("message",{msg:document.querySelector("textarea").value,username:username});
+        document.querySelector('textarea').value = '';
+      })
+    
+      socket.on("usersonline",function(data){
+        document.querySelector(".liveusers").textContent = data.length + "online";
+      })
+      socket.on("disconnection",function(data){
+        document.querySelector(".liveusers").textContent = data.length + 'online';
+      })
+      document.querySelector(".cover button").addEventListener("click",function(){
+        if(document.querySelector("input").value.length > 0){
+          username = document.querySelector('input').value;
+          
+          socket.emit("showUsers",username);
+          document.querySelector(".cover").style.display = 'none';
+        }
+      })
+      
+      socket.on("reply",function(data){
+        if(socket.id === data.id){
+
+          document.querySelector('.messages').innerHTML += `<div class="message"><div class="t"><h2>${data.data.username}</h2><p>${data.data.msg}</p></div></div>`
+    
+        }
+        else{
+          document.querySelector('.messages').innerHTML += `<div class="message"><div class="t"><h2>${data.data.username}</h2><p>${data.data.msg}</p></div></div>`
+
+          document.querySelector('.messages').lastChild.style.backgroundColor = 'rgb(245, 119, 119)';
+          document.querySelector('.messages').lastChild.style.marginLeft = 'auto';
+          
+        }
+       
+       var m = document.querySelector(".messages").lastChild.getBoundingClientRect().bottom;
+       var mes = document.querySelector(".messages").getBoundingClientRect().bottom;
+       if(m>mes){
+         var scrollingValue = m-mes;
+         document.querySelector(".messages").scrollBy(0,scrollingValue+15)
+       }
+      })
+      socket.on('usersonline',function(data){
+        
+        var a = '';
+        data.forEach(element => {
+         a+=`<div class="user">
+         <h3>${element}</h3>
+         <div class="online">
+           <h5>online</h5>
+           <div class="circle"></div>
+         </div>
+        </div>`
+      });
+      document.querySelector('.usersonline').innerHTML = a;
+    })
+    var state =1 ;
+        document.querySelector('.overlayt').addEventListener("click",function(){
+         if(state ===1)
+         {
+          document.querySelector('.usersonline').style.display = 'initial';
+          state=0;
+         }
+         else{
+           document.querySelector('.usersonline').style.display = 'none';
+           state =1;
+         }
+        
+    })
+    
+    </script>
+  </body>
+</html>
